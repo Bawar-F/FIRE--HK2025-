@@ -1,0 +1,9 @@
+{
+  "SAMPLE_MISSING": "No sample detected. Check sampler and try again.",
+  "IGNITION_STARTED": "Ignition started.",
+  "DANGEROUS_STATE": "Unsafe condition detected. Aborting and extinguishing.",
+  "EXTINGUISHING": "Extinguishing...",
+  "COOLDOWN_TO_SAFE": "Cooling down. Wait until safe-to-open.",
+  "READY_TO_OPEN": "Chamber safe to open.",
+  "READY": "Ready for next test."
+}

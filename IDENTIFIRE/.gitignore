@@ -1,0 +1,161 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+
+# Build outputs
+*.o
+*.a
+*.lib
+*.exe
+*.dll
+*.dylib
+
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# KiCad backup files
+*.bak
+*.bck
+*-cache.lib
+*-cache.dcm
+*.tmp
+*.net
+*.dsn
+*.ses
+fp-info-cache
+
+# CAD files (keep sources, ignore exports unless specified)
+*.asm
+*.sldprt~
+*.sldasm~
+*.slddrw~
+
+# Log files
+*.log
+logs/
+
+# Data files (keep small samples, ignore large datasets)
+data/large/
+data/recordings/
+*.h5
+*.hdf5
+
+# Secrets and credentials
+.env.local
+.env.production
+*.pem
+*.key
+config/secrets/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Firmware build artifacts
+*.bin
+*.hex
+*.elf
+*.map
+
+# Documentation build
+docs/_build/
+docs/build/
+site/
+
+# Safety-sensitive files (these should be tracked but flagged)
+# Remove from gitignore if you want to track them
+# tests/safety/actual_test_results/
+# data/incident_reports/
+
+# CAD exports and heavy media (prefer Git LFS if tracking)
+*.stl
+*.step
+*.iges
+*.igs
+
+# Media caches
+runs/**/raw/
