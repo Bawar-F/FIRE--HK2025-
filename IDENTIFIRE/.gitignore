@@ -150,12 +150,3 @@ site/
 # Remove from gitignore if you want to track them
 # tests/safety/actual_test_results/
 # data/incident_reports/
-
-# CAD exports and heavy media (prefer Git LFS if tracking)
-*.stl
-*.step
-*.iges
-*.igs
-
-# Media caches
-runs/**/raw/

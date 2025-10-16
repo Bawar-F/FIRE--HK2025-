@@ -24,4 +24,5 @@ photos/
 - Avoid spaces: use dashes or underscores
 
 ## Tips
-- Take photos throughout your work, not just at the end
+- Take photos often throughout your work, not just at the end. 
+- Rather take too many photos than not enough.
