@@ -1,10 +1,15 @@
 #include <SoftwareSerial.h>
+#include <string.h>
 
 #define spark 5
 #define valve 10
 
 // RX, TX (Arduino reads on pin 9, sends on pin 8)
 SoftwareSerial mySerial(9, 8);
+
+String input="";
+int values[3];
+int index = 0;
 
 int state = 0;
 unsigned long prevMillis = 0;
@@ -22,7 +27,7 @@ void setup() {
   Serial.begin(9600);
   mySerial.write(ack_status);
 
-  mySerial.setTimeout(10);
+  mySerial.setTimeout(100);
 
   TCCR1B = TCCR1B & B11111000 | B00000010;
 
@@ -48,15 +53,57 @@ void loop() {
 
     // Wait for integer data to come
     //while (mySerial.available() == 0) {}
-    int S = mySerial.parseInt();
-    int T = mySerial.parseInt();
-    int D = mySerial.parseInt();
+    //int S = mySerial.parseInt();
+    //int T = mySerial.parseInt();
+    //int D = mySerial.parseInt();
+
+    int S = 0;
+    int T = 0;
+    int D = 0;
+
+    
+
+  while (mySerial.available()) {
+    char c = mySerial.read();
+
+
+    if (c == '\r') continue;     // ignore CR
+
+    if (c == '\n') {             // got a full line
+      if (input.length() > 0) {
+        int number = input.toInt();
+        if (index < 3) {
+          values[index] = number;
+          index++;
+        }
+      }
+
+      input = "";                 // clear for next line
+
+      // When we have 3 values, do something with them
+      if (index == 3) {
+        S = values[0];
+        T = values[1];
+        D = values[2];
+
+        index = 0;  // reset for next command
+      }
+    }
+    else {
+      input += c;   // accumulate characters
+    }
+  }
+
+    input = "";
+
+
 
     Serial.print(S);
     Serial.print(" ");
     Serial.print(T);
     Serial.print(" ");
     Serial.println(D);
+
 
 
     if ((S == 1) && (!timerRunning)){
@@ -70,7 +117,7 @@ void loop() {
       timerRunningSpark = true;
       
       ack_status = '1';
-      mySerial.write(ack_status);
+      mySerial.write(ack_status); 
     }
 
 
@@ -83,16 +130,18 @@ void loop() {
       analogWrite(valve, 0);
       timerRunning = false;
       ack_status = '2';
-      mySerial.write(ack_status);
+      mySerial.write(ack_status); 
     }
   }
 
   // Spark timer
   if (timerRunningSpark) {
     unsigned long elapsedSpark = millis() - prevMillisSpark;
+    if (elapsedSpark % 50 == 0) {Serial.println(elapsedSpark);}
     if (elapsedSpark >= timerMaxSpark) {
       analogWrite(spark, 0);
       timerRunningSpark = false;
     }
   }
+
 }
