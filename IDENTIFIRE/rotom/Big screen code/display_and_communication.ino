@@ -171,13 +171,15 @@ void printBatteryCorner() {
   /*lcd.setCursor(16, 0);
   lcd.print(pct);
   lcd.print("% ");*/
+  char buffer[10];
+  itoa(pct, buffer, 10);
   Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
   Wire.write(0);                 // command register
   Wire.write(3);
   Wire.write(1);
   Wire.write(17);
-  Wire.write(pct);
-  Wire.write("% ");
+  Wire.print((buffer));
+  Wire.print(F("% "));
   Wire.endTransmission();
 }
 
@@ -203,15 +205,15 @@ void menu_show() {
     if(idx == menu_index ){
       Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
       Wire.write(0); 
-      Wire.write( "> ");
-      Wire.write(menu_items[idx]);
+      Wire.print(F( "> "));
+      Wire.print(menu_items[idx]);
       Wire.endTransmission();
     }else{
     //lcd.print(menu_items[idx]);
       Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
       Wire.write(0); 
       //Wire.write("  ");
-      Wire.write(menu_items[idx]);
+      Wire.print(menu_items[idx]);
       Wire.endTransmission();
     }
   }
@@ -269,7 +271,7 @@ void show_latest_result_page() {
     //lcd.print("No test results.");
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("No test results.");
+    Wire.print(F("No test results."));
     Wire.endTransmission();
 
     //lcd.setCursor(0, 3);
@@ -283,7 +285,7 @@ void show_latest_result_page() {
     //lcd.print("> Return");
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("> Return");
+    Wire.print(F("> Return"));
     Wire.endTransmission();
     return;
   }
@@ -297,7 +299,7 @@ void show_latest_result_page() {
     //lcd.print("Latest Result");
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Latest Result");
+    Wire.print(F("Latest Result"));
     Wire.endTransmission();
 
     //lcd.setCursor(0, 1);
@@ -315,9 +317,9 @@ void show_latest_result_page() {
     dtostrf(r.averageRos, 6, 2, buffer);
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Avg RoS: ");
-    Wire.write(buffer);
-    Wire.write(" cm^2/s");
+    Wire.print(F("Avg RoS: "));
+    Wire.print(buffer);
+    Wire.print(F(" cm^2/s"));
     Wire.endTransmission();
 
     //lcd.setCursor(0, 2);
@@ -329,9 +331,9 @@ void show_latest_result_page() {
     dtostrf(r.peakRos, 6, 2, buffer);
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Peak: ");
-    Wire.write(buffer);
-    Wire.write(" cm^2/s");
+    Wire.print(F("Peak: "));
+    Wire.print(buffer);
+    Wire.print(F(" cm^2/s"));
     Wire.endTransmission();
 
     //lcd.setCursor(0, 3);
@@ -340,7 +342,7 @@ void show_latest_result_page() {
     //lcd.print("> More Details");
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("> More Details");
+    Wire.print(F("> More Details"));
     Wire.endTransmission();
 
   } else if (result_page == 1) {
@@ -354,9 +356,9 @@ void show_latest_result_page() {
     dtostrf(r.burnedPercentage, 6, 2, buffer);
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Burn: ");
-    Wire.write(buffer);
-    Wire.write("%");
+    Wire.print(F("Burn: "));
+    Wire.print(buffer);
+    Wire.print(F("%"));
     Wire.endTransmission();
 
     //lcd.setCursor(0, 1);
@@ -366,8 +368,8 @@ void show_latest_result_page() {
     lcd.print(r.burnSetting);*/
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Setting: ");
-    Wire.write(r.burnSetting);
+    Wire.print(F("Setting: "));
+    Wire.print(r.burnSetting);
     Wire.endTransmission();
 
     //lcd.setCursor(0, 2);
@@ -379,9 +381,9 @@ void show_latest_result_page() {
     lcd.print(F(" s"));*/
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Ignite: ");
-    Wire.write(buffer);
-    Wire.write(" s");
+    Wire.print(F("Ignite: "));
+    Wire.print(buffer);
+    Wire.print(F(" s"));
     Wire.endTransmission();
 
     //lcd.setCursor(0, 3);
@@ -390,7 +392,7 @@ void show_latest_result_page() {
     //lcd.print("> Avg results");
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("> Avg results");
+    Wire.print(F("> Avg results"));
     Wire.endTransmission();
   }
 
@@ -409,9 +411,9 @@ void show_latest_result_page() {
     itoa(array_counter_counter, buffer, 10);
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Avg of last ");
-    Wire.write(buffer);
-    Wire.write(" tests");
+    Wire.print(F("Avg of last "));
+    Wire.print(buffer);
+    Wire.print(F(" tests"));
     Wire.endTransmission();
 
     //lcd.setCursor(0, 1);
@@ -421,9 +423,9 @@ void show_latest_result_page() {
     dtostrf(aAvg, 6, 2, buffer);
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Avg RoS: ");
-    Wire.write(buffer);
-    Wire.write(" cm^2/s");
+    Wire.print(F("Avg RoS: "));
+    Wire.print(buffer);
+    Wire.print(F(" cm^2/s"));
     Wire.endTransmission();
 
     //lcd.setCursor(0, 2);
@@ -434,9 +436,9 @@ void show_latest_result_page() {
     dtostrf(aPeak, 6, 2, buffer);
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Peak: ");
-    Wire.write(buffer);
-    Wire.write(" cm^2/s");
+    Wire.print(F("Peak: "));
+    Wire.print(buffer);
+    Wire.print(F(" cm^2/s"));
     Wire.endTransmission();
 
     //lcd.setCursor(0, 3);
@@ -445,7 +447,7 @@ void show_latest_result_page() {
     //lcd.print("> Next page");
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("> Next page");
+    Wire.print(F("> Next page"));
     Wire.endTransmission();
   }
   else if (result_page == 3){
@@ -464,9 +466,9 @@ void show_latest_result_page() {
     dtostrf(aBurn, 6, 2, buffer);
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Avg burn: ");
-    Wire.write(buffer);
-    Wire.write("%");
+    Wire.print(F("Avg burn: "));
+    Wire.print(buffer);
+    Wire.print(F("%"));
     Wire.endTransmission();
 
     //lcd.setCursor(0, 1);
@@ -476,9 +478,9 @@ void show_latest_result_page() {
     dtostrf(aIgn, 6, 2, buffer);
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Avg IGN time: ");
-    Wire.write(buffer);
-    Wire.write("s");
+    Wire.print(F("Avg IGN time: "));
+    Wire.print(buffer);
+    Wire.print(F("s"));
     Wire.endTransmission();
 
     //lcd.setCursor(0, 2);
@@ -487,7 +489,7 @@ void show_latest_result_page() {
     //lcd.print("> Return");
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("> Return");
+    Wire.print(F("> Return"));
     Wire.endTransmission();
   }
 
@@ -535,7 +537,7 @@ bool handle_test_state() {
     case 2:
     case 3:
     case 4:
-    case 32:
+    //case 32:
     case 6: {
       if (Wire.available()) {Wire.read();}
       Wire.beginTransmission(0x10);
@@ -557,7 +559,7 @@ bool handle_test_state() {
       //lcd.print(F("Sample not ignited"));
       Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
       Wire.write(0); 
-      Wire.write("Sample not ignited");
+      Wire.print(F("Sample not ignited"));
       Wire.endTransmission();
       delay(3000);
       state = WASTE_MANAGEMENT;
@@ -586,7 +588,7 @@ bool handle_test_state() {
 
       //while (!result_SD_card){
       //  result_SD_card = SD.open("resultfile.txt", FILE_WRITE);
-     // }
+      // }
 
       result_SD_card.print("Test result: ");
       result_SD_card.print("Average rate of spread [cm^2/s]: ");
@@ -612,7 +614,7 @@ bool handle_test_state() {
       //lcd.print(F("Test Completed!"));
       Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
       Wire.write(0); 
-      Wire.write("Test completed");
+      Wire.print(F("Test completed"));
       Wire.endTransmission();
 
       //lcd.setCursor(0,2);
@@ -621,13 +623,13 @@ bool handle_test_state() {
       //lcd.print(F("Results available"));
       Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
       Wire.write(0); 
-      Wire.write("Results available");
+      Wire.print(F("Results available"));
       Wire.endTransmission();
       lcd_setCursor(4, 1);
       //lcd.print(F("in 'Latest Results'"));
       Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
       Wire.write(0); 
-      Wire.write("in 'Latest Results'");
+      Wire.print(F("in 'Latest Results'"));
       Wire.endTransmission();
       delay(3000);
 
@@ -639,7 +641,7 @@ bool handle_test_state() {
 
     case 9:
     default:
-      
+      if(statusflag==32){statusflag=5;}
       break;
   }
 
@@ -743,14 +745,14 @@ bool check_temperature(){
     //lcd.print("Timeout due to");
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Timeout due to");
+    Wire.print(F("Timeout due to"));
     Wire.endTransmission();
     //lcd.setCursor(0,1);
     lcd_setCursor(2, 1);
     //lcd.print("communication error");
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("communication error");
+    Wire.print(F("communication error"));
     Wire.endTransmission();
     delay(3000);
     return true;
@@ -765,7 +767,7 @@ bool check_temperature(){
     //lcd.print("Too warm for test,");
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Too warm for test,");
+    Wire.print(F("Too warm for test,"));
     Wire.endTransmission();
 
     //lcd.setCursor(0, 1);
@@ -773,7 +775,7 @@ bool check_temperature(){
     //lcd.print("must cool down");
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("must cool down");
+    Wire.print(F("must cool down"));
     Wire.endTransmission();
 
     //lcd.setCursor(0, 2);
@@ -785,9 +787,9 @@ bool check_temperature(){
     itoa(temp, buffer, 10);
     Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
     Wire.write(0); 
-    Wire.write("Temperature");
-    Wire.write(buffer);
-    Wire.write(" degC");
+    Wire.print(F("Temperature"));
+    Wire.print(buffer);
+    Wire.print(F(" degC"));
     Wire.endTransmission();
     delay(3000);
     menu_show();
@@ -831,7 +833,7 @@ void state_machine() {
           //lcd.print(F("Test Running..."));
           Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
           Wire.write(0); 
-          Wire.write("Test running...");
+          Wire.print(F("Test running..."));
           Wire.endTransmission();
 
         } else if (menu_index == 1) {
@@ -850,7 +852,7 @@ void state_machine() {
           //lcd.print(F("Battery Level"));
           Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
           Wire.write(0); 
-          Wire.write("Battery level");
+          Wire.print(F("Battery level"));
           Wire.endTransmission();
 
           //lcd.setCursor(0, 1);
@@ -861,8 +863,8 @@ void state_machine() {
           itoa(getBatteryPercent(), buffer, 10);
           Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
           Wire.write(0); 
-          Wire.write(buffer);
-          Wire.write("%");
+          Wire.print(buffer);
+          Wire.print(F("%"));
           Wire.endTransmission();
           
           //lcd.setCursor(0, 3);
@@ -871,7 +873,7 @@ void state_machine() {
           //lcd.print("> Return");
           Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
           Wire.write(0); 
-          Wire.write("> Return");
+          Wire.print(F("> Return"));
           Wire.endTransmission();
 
         } else if (menu_index == 3) {
@@ -881,7 +883,7 @@ void state_machine() {
           //lcd.print(F("Emptying burn box.."));
           Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
           Wire.write(0);
-          Wire.write("Emptying burn box..");
+          Wire.print(F("Emptying burn box.."));
           Wire.endTransmission();
           state = WASTE_MANAGEMENT;
         }
@@ -905,14 +907,14 @@ void state_machine() {
         //lcd.print(F("Waste system"));
         Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
         Wire.write(0);
-        Wire.write("Waste system");
+        Wire.print(F("Waste system"));
         Wire.endTransmission();
         //lcd.setCursor(0,1);
         lcd_setCursor(2,1);
         //lcd.print(F("communication error"));
         Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
         Wire.write(0);
-        Wire.write("communication error");
+        Wire.print(F("communication error"));
         Wire.endTransmission();
         delay(3000);
         state = STATE_MENU;
@@ -928,7 +930,7 @@ void state_machine() {
         //lcd.print(F("Fire system"));
         Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
         Wire.write(0);
-        Wire.write("Fire system");
+        Wire.print(F("Fire system"));
         Wire.endTransmission();
 
         //lcd.setCursor(0,1);
@@ -937,7 +939,7 @@ void state_machine() {
         //lcd.print(F("communication error"));
         Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
         Wire.write(0);
-        Wire.write("communication error");
+        Wire.print(F("communication error"));
         Wire.endTransmission();
         delay(3000);
         state = STATE_MENU;
@@ -947,7 +949,7 @@ void state_machine() {
       //lcd.print(F("Test in progress.."));
       Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
       Wire.write(0);
-      Wire.write("Test in progress...");
+      Wire.print(F("Test in progress..."));
       Wire.endTransmission();
       state = IDLE;
       break;
@@ -963,14 +965,14 @@ void state_machine() {
         //lcd.print(F("Waste system"));
         Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
         Wire.write(0);
-        Wire.write("Waste system");
+        Wire.print(F("Waste system"));
         Wire.endTransmission();
         //lcd.setCursor(0,1);
         lcd_setCursor(2,1);
         //lcd.print(F("communication error"));
         Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
         Wire.write(0);
-        Wire.write("communication error");
+        Wire.print(F("communication error"));
         Wire.endTransmission();
         delay(3000);
         state = STATE_MENU;
@@ -1005,7 +1007,7 @@ void state_machine() {
         //lcd.print(F("Fire system"));
         Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
         Wire.write(0);
-        Wire.write("Fire system");
+        Wire.print(F("Fire system"));
         Wire.endTransmission();
 
         //lcd.setCursor(0,1);
@@ -1013,7 +1015,7 @@ void state_machine() {
         //lcd.print(F("communication error"));
         Wire.beginTransmission(LCD_I2C_ADDR);  // LCD03 on I2C
         Wire.write(0);
-        Wire.write("communication error");
+        Wire.print(F("communication error"));
         Wire.endTransmission();
         delay(3000);
         state = STATE_MENU;
@@ -1066,7 +1068,7 @@ void setup() {
   Wire.write(0);
   Wire.write("Booting up...") ;
   Wire.endTransmission();
-  delay(30000);                   //Booting time for raspberry
+  delay(5000);                   //Booting time for raspberry
   Wire.beginTransmission(LCD_I2C_ADDR);
   Wire.write(0);
   Wire.write(4);
