@@ -1,6 +1,5 @@
 #include <SoftwareSerial.h>
 
-
 #define spark 5
 #define valve 10
 

@@ -77,13 +77,14 @@ void receiveEvent(int count) {
 }
 
 void requestEvent() {
-  if (i2cCommand == 1){
-    Wire.write(state); //If state is 5 no data, if state is 7 struct
-  }
-  else {
+  if (i2cCommand == 2) {
     Wire.write((uint8_t*)&data,sizeof(resultPayload));
     state = 1;
   }
+  else{
+    Wire.write(state);
+  }
+  
 }
 
 // Start a burn cycle
@@ -263,9 +264,8 @@ void loop() {
           Serial.println("[STATE 1] Idle – waiting for I2C START command...");
           printed = true;
           burnAttempts = 0;
-
         }
-        
+        i2cCommand = 1;
         if (i2cCommand == 1) {
           i2cCommand = 0; 
           state = 2;
@@ -300,10 +300,9 @@ void loop() {
       Serial.println("[RESULT] Sample never ignited after all sequences → test failed");
       delay(5000);
       if(i2cCommand == 1){
-        i2cCommand= 0;
+        i2cCommand = 0;
         state = 1;
       }
-    
       break;
 
     case 6:
