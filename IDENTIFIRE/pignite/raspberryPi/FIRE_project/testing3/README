@@ -1,0 +1,15 @@
+sudo systemctl status fire_project.service
+ # CHECK THE STATUS OF THE SYSTEMD SERVICE (OUR PYTHON SCRIPT)
+
+journalctl -u fire_project.service -f
+ # CHECK THE OUTPUT OF THE SYSTEMD SERVICE (OUR PYTHON SCRIPT)
+
+
+ # WORKFLOW FOR UPDATING MAIN.PY
+sudo systemctl stop fire_project.service
+ # stop the service
+ # update the script
+
+sudo systemctl start fire_project.service
+ # restart the service
+

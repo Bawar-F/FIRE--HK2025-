@@ -31,9 +31,16 @@ void setup() {
 
   TCCR1B = TCCR1B & B11111000 | B00000010;
 
+  Serial.println("RESET FUNC WORKED");
+
   pinMode(spark, OUTPUT);
   pinMode(valve, OUTPUT);
+
+  analogWrite(spark, 0);
+  analogWrite(valve, 0);
 }
+
+void(* resetFunc) (void) = 0;
 
 int i = 0;
 char character;
@@ -53,10 +60,17 @@ void loop() {
 
     // Wait for integer data to come
     //while (mySerial.available() == 0) {}
-    //int S = mySerial.parseInt();
-    //int T = mySerial.parseInt();
-    //int D = mySerial.parseInt();
+    int S = mySerial.parseInt();
+    int T = mySerial.parseInt();
+    int D = mySerial.parseInt();
 
+    if (S == 3){
+      analogWrite(valve, 0);
+      analogWrite(spark, 0);
+      timerRunning = false;
+      timerRunningSpark = false;
+    }
+ /*
     int S = 0;
     int T = 0;
     int D = 0;
@@ -96,14 +110,14 @@ void loop() {
 
     input = "";
 
-
+*/
 
     Serial.print(S);
     Serial.print(" ");
     Serial.print(T);
     Serial.print(" ");
     Serial.println(D);
-
+    Serial.println(prevMillisSpark);
 
 
     if ((S == 1) && (!timerRunning)){
@@ -125,17 +139,36 @@ void loop() {
 
   // Valve timer
   if (timerRunning) {
+    if (millis() < prevMillis) {
+      analogWrite(valve, 0);
+      timerRunning = false;
+      Serial.print("Valve recovery");
+    }
     unsigned long elapsed = millis() - prevMillis;
+    Serial.print("valve: ");
+    Serial.println(elapsed);
     if (elapsed >= timerMax) {
       analogWrite(valve, 0);
+      analogWrite(spark, 0);
       timerRunning = false;
       ack_status = '2';
       mySerial.write(ack_status); 
+      
     }
   }
 
   // Spark timer
   if (timerRunningSpark) {
+    if (millis() < prevMillisSpark) {
+      analogWrite(spark, 0);
+      timerRunningSpark = false;
+      Serial.print("Spark recovery");
+    }
+    if (abs(millis()-prevMillisSpark) > 2500) {
+      analogWrite(spark, 0);
+      timerRunningSpark = false;
+      Serial.print("Spark recovery");
+    }
     unsigned long elapsedSpark = millis() - prevMillisSpark;
     if (elapsedSpark % 50 == 0) {Serial.println(elapsedSpark);}
     if (elapsedSpark >= timerMaxSpark) {

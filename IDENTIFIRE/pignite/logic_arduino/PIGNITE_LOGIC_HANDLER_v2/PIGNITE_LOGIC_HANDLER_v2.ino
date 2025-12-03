@@ -37,9 +37,11 @@ static bool sent = false;
 
 unsigned long prevValveT = 0;
 unsigned long maxValveT = 0;
-bool valveT = false;
-bool timerCmd = false;
-bool flagT = false;
+
+
+bool valveRunning = false;
+unsigned long valveStart = 0;
+unsigned long valveDuration = 0;
 
 // ------------------------------------------------------------
 // Burn sequences
@@ -96,22 +98,65 @@ void requestEvent() {
 }
 
 // Start a burn cycle
-void startCycle(uint16_t timeMS, uint8_t duty) {
-  if (!burnActive){
+void startCycle(uint16_t timeMS, uint8_t duty)
+{
     String cmd = String("1\n") + String(timeMS) + "\n" + String(duty) + "\n";
-    valveSerial.println(cmd);
-    burnActive = true;
+    
+    valveSerial.print(cmd);
+    Serial.print("[SEND] ");
+    Serial.println(cmd);
 
-    maxValveT = timeMS + 1000;
-    valveT = true;
-    prevValveT = millis();
+    // Wait for ACK = '1'
+    unsigned long startWait = millis();
+    while (!valveSerial.available()) {
+        if (millis() - startWait > 2000) {
+            Serial.println("[ERROR] Valve did not acknowledge START");
+            return;
+        }
+    }
 
-    Serial.print("[BURN START] Time: ");
-    Serial.print(timeMS);
-    Serial.print(" ms, Duty: ");
-    Serial.print(duty);
-    Serial.println(" (255=max)");
-  }
+    char ack = valveSerial.read();
+    if (ack == '1') {
+        Serial.println("[VALVE] START OK");
+    } else {
+        Serial.print("[ERROR] Unexpected ACK: ");
+        Serial.println(ack);
+        return;
+    }
+
+    valveRunning = true;
+    valveStart = millis();
+    valveDuration = timeMS;
+}
+
+void updateValveTimer()
+{
+    if (!valveRunning) return;
+
+    if (millis() - valveStart >= valveDuration) {
+        Serial.println("[TIMER] Burn duration complete → sending STOP");
+
+        valveSerial.print("3\n0\n0\n");  // STOP
+
+        // Wait for ACK = '2'
+        unsigned long startWait = millis();
+        while (!valveSerial.available()) {
+            if (millis() - startWait > 2000) {
+                Serial.println("[ERROR] Valve did not acknowledge STOP");
+                break;
+            }
+        }
+
+        char ack = valveSerial.read();
+        if (ack == '2') {
+            Serial.println("[VALVE] STOP OK");
+        } else {
+            Serial.print("[ERROR] Unexpected STOP ACK: ");
+            Serial.println(ack);
+        }
+
+        valveRunning = false;
+    }
 }
 
 // ------------------------------------------------------------
@@ -157,72 +202,63 @@ void runBurnSequence(BurnStep* sequence, int steps, int& burnStep, const char* m
 
     startCycle(sequence[burnStep].time, sequence[burnStep].dutyCycle);
 
-  } else if (valveSerial.available() > 0 || timerCmd == true) {
-    ack = valveSerial.read();
-    valveT = false;
-    if (timerCmd == true){
-      ack == '2';
-      timerCmd = false;
-      
-    }
+  } 
+
+  if (ack == '2') {
+    Serial.println("[VALVE] Burn step completed → waiting 10 s for flame detection");
+    ack = '0';
+    delay(10000);  // stabilization delay
+
+    Serial.println("[CAMERA] Querying fire status after 10 s delay");
+    Serial1.println("FIRESTATUS");
+
+    while (Serial1.available() <= 0) {}
+    bool fire = Serial1.parseInt();
+    Serial1.read();
 
 
 
-    if (ack == '2') {
-      Serial.println("[VALVE] Burn step completed → waiting 10 s for flame detection");
-      ack = '0';
-      delay(10000);  // stabilization delay
+    if (fire) {
+      state = 6;
+      burnActive = false;
+      stepTime = stepTime + sequence[burnStep].time;
+      burnSetting = moistureLevel;
+      Serial.println("SUCCESS! Sample is burning → waiting for Raspberry Pi analysis data");
+      return;
+    } else {
+      Serial.println("[NO FIRE] No flame detected after 10 s → ramping up power");
 
-      Serial.println("[CAMERA] Querying fire status after 10 s delay");
-      Serial1.println("FIRESTATUS");
-
+      // Stop and reset camera for next attempt
+      Serial1.println("stop");
       while (Serial1.available() <= 0) {}
-      bool fire = Serial1.parseInt();
+      bool stopOk = Serial1.parseInt();
       Serial1.read();
 
-
-
-      if (fire) {
-        state = 6;
-        burnActive = false;
-        stepTime = stepTime + sequence[burnStep].time;
-        burnSetting = moistureLevel;
-        Serial.println("SUCCESS! Sample is burning → waiting for Raspberry Pi analysis data");
+      if (!stopOk) {
+        state = -1;
+        Serial.println("[ERROR] Camera failed to stop!");
         return;
+      }
+
+      Serial1.println("reset");
+      while (Serial1.available() <= 0) {}
+      bool resetOk = Serial1.parseInt();
+      Serial1.read();
+
+      if (resetOk) {
+        burnAttempts++;
+        burnStep++;
+        stepTime = stepTime + sequence[burnStep].time;
+        burnActive = false;
+        Serial.print("[NEXT ATTEMPT] Total ignition attempts so far: ");
+        Serial.println(burnAttempts);
       } else {
-        Serial.println("[NO FIRE] No flame detected after 10 s → ramping up power");
-
-        // Stop and reset camera for next attempt
-        Serial1.println("stop");
-        while (Serial1.available() <= 0) {}
-        bool stopOk = Serial1.parseInt();
-        Serial1.read();
-
-        if (!stopOk) {
-          state = -1;
-          Serial.println("[ERROR] Camera failed to stop!");
-          return;
-        }
-
-        Serial1.println("reset");
-        while (Serial1.available() <= 0) {}
-        bool resetOk = Serial1.parseInt();
-        Serial1.read();
-
-        if (resetOk) {
-          burnAttempts++;
-          burnStep++;
-          stepTime = stepTime + sequence[burnStep].time;
-          burnActive = false;
-          Serial.print("[NEXT ATTEMPT] Total ignition attempts so far: ");
-          Serial.println(burnAttempts);
-        } else {
-          state = -1;
-          Serial.println("[ERROR] Camera reset failed!");
-        }
+        state = -1;
+        Serial.println("[ERROR] Camera reset failed!");
       }
     }
   }
+  
 }
 
 // ------------------------------------------------------------
@@ -276,6 +312,7 @@ void setup() {
 // Main loop
 // ------------------------------------------------------------
 void loop() {
+  updateValveTimer();
   switch (state) {
 
     case 1:
@@ -404,21 +441,6 @@ void loop() {
       break;
   }
 
-    // Valve timer
-  if (valveT) {
-    if (millis() < prevValveT) {
-      valveT = false;
-      Serial.print("Resetting Valve A");
-      timerCmd = true;
-    }
-    unsigned long elapsed = millis() - prevValveT;
-    if (elapsed >= maxValveT) {
-      valveT = false;
-      timerCmd = true;
-      Serial.print("Resetting Valve A");
-
-    }
-  }
 
   
 

@@ -1,0 +1,75 @@
+import os
+import math
+
+# Hardware
+CAMERA_MODEL = "FLIR Lepton 3.1R"
+IMAGE_WIDTH = 160
+IMAGE_HEIGHT = 120
+FOV_DEGREES = 95
+MAX_TEMP_CELSIUS = 400
+CAMERA_DISTANCE_CM = 17.5
+
+# Calculated FOV
+FOV_WIDTH_CM = 2 * CAMERA_DISTANCE_CM * math.tan(math.radians(FOV_DEGREES / 2))
+FOV_HEIGHT_CM = FOV_WIDTH_CM * (IMAGE_HEIGHT / IMAGE_WIDTH)
+PIXEL_AREA_CM2 = (FOV_WIDTH_CM * FOV_HEIGHT_CM) / (IMAGE_WIDTH * IMAGE_HEIGHT)
+PIXEL_WIDTH_MM = (FOV_WIDTH_CM * 10) / IMAGE_WIDTH
+PIXEL_HEIGHT_MM = (FOV_HEIGHT_CM * 10) / IMAGE_HEIGHT
+
+# Processing
+BURN_TEMP_DELTA = 100
+MIN_BURN_TEMP_ABSOLUTE = 80
+
+MIN_CONTOUR_AREA_PIXELS = 20
+EDGE_DETECTION_METHOD = "temperature"
+
+# Paths
+CAPTURE_FOLDER = "/tmp/lepton_capture"
+FILE_PREFIX = "sample_"
+FILE_EXTENSION = ".gray"
+PARTIAL_RESULTS_PATH = "/tmp/burn_partial_results.json"
+
+# UART
+UART_PORT = "/dev/serial0"
+UART_BAUDRATE = 9600
+UART_TIMEOUT = 1.0
+
+# Analysis
+DEFAULT_CAPTURE_DURATION = 3600
+DEFAULT_CAPTURE_FPS = 9
+NUM_ANALYZER_THREADS = 2
+
+# Results
+RESULTS_FILE = "/tmp/burn_analysis_results.json"
+SEND_LIVE_UPDATES = True
+LIVE_UPDATE_INTERVAL = 10
+
+# Data format
+DTYPE_RAW = ">u2"
+BYTES_PER_PIXEL = 2
+EXPECTED_FILE_SIZE = IMAGE_WIDTH * IMAGE_HEIGHT * BYTES_PER_PIXEL
+
+# Debug
+DEBUG_MODE = True
+SAVE_DEBUG_IMAGES = False
+DEBUG_OUTPUT_FOLDER = "/tmp/burn_debug"
+
+# BURN ANALYZER SETTINGS FOR AUTO STOP FEATURE
+ROS_STOP_THRESHOLD = 0.02
+MIN_ZERO_FRAMES = 30
+
+# UART CONTROLLER FIRESTATUS COMMAND FIRE_LIT SETTING
+FIRE_LIT_FIRESTATUS = 0.005
+
+def print_config():
+    print(f"\n{'='*60}")
+    print(f"FIRE Burn Chamber Configuration")
+    print(f"{'='*60}")
+    print(f"Camera: {CAMERA_MODEL}")
+    print(f"Resolution: {IMAGE_WIDTH}×{IMAGE_HEIGHT} pixels")
+    print(f"FOV: {FOV_DEGREES}° → {FOV_WIDTH_CM:.1f}×{FOV_HEIGHT_CM:.1f} cm at {CAMERA_DISTANCE_CM} cm")
+    print(f"Pixel size: {PIXEL_WIDTH_MM:.2f}×{PIXEL_HEIGHT_MM:.2f} mm ({PIXEL_AREA_CM2:.4f} cm²)")
+    print(f"Burn detection: >{MIN_BURN_TEMP_ABSOLUTE}°C or +{BURN_TEMP_DELTA}°C above baseline")
+    print(f"Capture: {DEFAULT_CAPTURE_FPS} FPS, {DEFAULT_CAPTURE_DURATION}s duration")
+    print(f"Storage: {CAPTURE_FOLDER}")
+    print(f"{'='*60}\n")
