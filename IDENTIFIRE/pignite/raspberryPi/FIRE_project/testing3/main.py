@@ -16,6 +16,17 @@ from uart_controller import UARTController, SystemState
 from capture_manager import CaptureManager
 from burn_analyzer import BurnAnalyzer
 
+# Optional BLE telemetry
+if config.BLE_ENABLED:
+    try:
+        from bluetoothConnection import send_ble
+        print("[BLE] Bluetooth telemetry enabled")
+    except Exception as e:
+        print(f"[BLE] Failed to import: {e}")
+        send_ble = None
+else:
+    send_ble = None
+
 
 FIRE_IS_ACTIVE = False
 
@@ -134,6 +145,10 @@ class BurnChamberSystem:
         final_line = f"FINAL,{avg_ros:.2f},{peak_ros:.2f},{burn_pct:.1f}"
         self.uart.send_response(final_line)
         print(f"[UART] AUTO-SENT → {final_line}")
+        
+        if send_ble:
+            send_ble(final_line)
+            print(f"[BLE] Sent → {final_line}")
 
         # 4. Go back to IDLE
         self.uart.update_state(SystemState.IDLE)
@@ -228,6 +243,8 @@ class BurnChamberSystem:
         """Background thread - monitor capture progress."""
         import json
         
+        last_ble_update = 0
+        
         # Wait for capture to complete
         success = self.capture_manager.wait_for_completion()
         
@@ -248,6 +265,13 @@ class BurnChamberSystem:
             partial_summary = self.analyzer.get_summary_statistics()
             with open(config.PARTIAL_RESULTS_PATH, "w") as f:
                 json.dump(partial_summary, f)
+            
+            # Send BLE telemetry
+            if send_ble and (time.time() - last_ble_update) >= config.BLE_UPDATE_INTERVAL:
+                ros = partial_summary.get('avg_ros_cm2_per_sec', 0)
+                pct = partial_summary.get('final_burn_percentage', 0)
+                send_ble(f"LIVE,{ros:.2f},{pct:.1f}")
+                last_ble_update = time.time()
         
         self.processor.wait_for_completion()
         

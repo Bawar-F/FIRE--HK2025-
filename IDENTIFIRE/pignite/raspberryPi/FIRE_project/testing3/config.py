@@ -55,6 +55,10 @@ DEBUG_MODE = True
 SAVE_DEBUG_IMAGES = False
 DEBUG_OUTPUT_FOLDER = "/tmp/burn_debug"
 
+# Bluetooth telemetry
+BLE_ENABLED = False  # Set True to send telemetry over HM-10
+BLE_UPDATE_INTERVAL = 5  # Seconds between BLE updates
+
 # BURN ANALYZER SETTINGS FOR AUTO STOP FEATURE
 ROS_STOP_THRESHOLD = 0.02
 MIN_ZERO_FRAMES = 30

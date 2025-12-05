@@ -22,6 +22,64 @@ pi.set_mode(RX, pigpio.INPUT)
 # Initialize RX for software serial
 pi.bb_serial_read_open(RX, BAUD)
 
+
+
+_pi = None
+_initialized = False
+
+def init():
+    global _pi, _initialized
+    if _initialized:
+        return True
+    
+    _pi = pigpio.pi()
+    if not _pi.connected:
+        print("[BLE] Failed to connect to pigpio daemon")
+        return False
+    
+    _pi.set_mode(TX, pigpio.OUTPUT)
+    _pi.set_mode(RX, pigpio.INPUT)
+    _pi.bb_serial_read_open(RX, BAUD)
+    _initialized = True
+    print("[BLE] Initialized")
+    return True
+
+def cleanup():
+    global _pi, _initialized
+    if _pi and _initialized:
+        try:
+            _pi.bb_serial_read_close(RX)
+            _pi.stop()
+        except:
+            pass
+        _initialized = False
+        print("[BLE] Cleanup complete")
+
+def send(text, baud=9600):
+    """Send text over BLE. Returns True on success."""
+    global _pi, _initialized
+    if not _initialized:
+        if not init():
+            return False
+    
+    try:
+        data_bytes = text.encode('utf-8')
+        bit_time_us = int(1e6 / baud)
+        for byte in data_bytes:
+            wf = []
+            wf.append(pigpio.pulse(0, 1 << TX, bit_time_us))
+            for i in range(8):
+                if (byte >> i) & 1:
+                    wf.append(pigpio.pulse(1 << TX, 0, bit_time_us))
+                else:
+                    wf.append(pigpio.pulse(0, 1 << TX, bit_time_us))
+            wf.append(pigpio.pulse(1 << TX, 0, bit_time_us))
+            
+
+
+
+
+
 # -----------------------------
 # Bit-banged TX function (already working)
 # -----------------------------
@@ -55,13 +113,6 @@ def bb_serial_send_wave(pi, tx_pin, text, baud=9600):
             pi.wave_delete(wid)
 
 # -----------------------------
-# Simple send function for external use
-# -----------------------------
-def send_ble(message):
-    """Send a message over BLE. Call from other modules."""
-    bb_serial_send_wave(pi, TX, str(message) + "\r\n", BAUD)
-
-# -----------------------------
 # Menu loop
 # -----------------------------
 def menu():
@@ -77,8 +128,8 @@ def menu():
                 BAUD = 19600
                 #msg = input("Enter message to send: ")
                 bb_serial_send_wave(pi, TX, str(x) + "\r\n", BAUD)
-                time.sleep(0.1)
-            print("Message sent!")
+            
+print("Message sent!")
         elif choice == "2":
             BAUD = 9600
             print("Listening for data... (Ctrl+C to stop)")
@@ -104,10 +155,10 @@ def menu():
 # -----------------------------
 # Run the menu
 # -----------------------------
-if __name__ == "__main__":
-    try:
-        menu()
-    finally:
-        pi.bb_serial_read_close(RX)
-        pi.stop()
+try:
+    menu()
+finally:
+    # Cleanup
+    pi.bb_serial_read_close(RX)
+    pi.stop()
 
