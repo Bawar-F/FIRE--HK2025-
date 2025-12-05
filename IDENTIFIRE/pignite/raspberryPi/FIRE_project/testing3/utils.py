@@ -23,7 +23,6 @@ def read_gray_file(file_path):
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
     
-    # Read raw data
     with open(file_path, "rb") as f:
         data = f.read()
     
@@ -41,18 +40,19 @@ def extract_frame_number(file_path):
     """Extract frame number from filename (e.g., 'sample_000123.gray' → 123)."""
     filename = os.path.basename(file_path)
     try:
-        number_str = filename.replace(config.FILE_PREFIX, "").replace(config.FILE_EXTENSION, "")
-        return int(number_str)
-    except ValueError:
+        name_without_ext = filename.replace(config.FILE_EXTENSION, "")
+        # The frame number is always the last numeric part after the last underscore
+        parts = name_without_ext.split("_")
+        return int(parts[-1])
+    except (ValueError, IndexError):
         return -1
 
 def get_timestamp_from_file(file_path):
-    """Get file modification timestamp."""
     return os.path.getmtime(file_path)
 
 
 def format_duration(seconds):
-    """Format seconds as human-readable string (e.g., '2m 34s')."""
+    """Format seconds as string ('2m 34s')."""
     if seconds < 60:
         return f"{seconds:.1f}s"
     elif seconds < 3600:

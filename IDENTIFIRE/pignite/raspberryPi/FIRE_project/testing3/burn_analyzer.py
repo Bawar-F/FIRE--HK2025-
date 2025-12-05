@@ -28,8 +28,6 @@ class BurnAnalyzer:
         self.has_auto_stopped = False
         self.auto_stop_callback = None
 
-
-        
     def reset(self):
         self.__init__(self.temp_threshold_delta, self.baseline_percentile)
     
@@ -117,21 +115,16 @@ class BurnAnalyzer:
         self.frame_data.append(frame_result)
         self.frame_count += 1
 
-        # === AUTO-STOP: Fire has stopped spreading ===
         current_ros = frame_result['ros_instantaneous_cm2_per_sec']
 
         if current_ros < self.ROS_STOP_THRESHOLD:
             self.ros_zero_streak += 1
         else:
-            self.ros_zero_streak = 0  # reset if any activity
+            self.ros_zero_streak = 0
 
-        # Fire has been dead for 50+ frames AND ignition actually happened
-        if (current_ros < self.ROS_STOP_THRESHOLD and importlib.import_module("main").FIRE_IS_ACTIVE):
-
+        if current_ros < self.ROS_STOP_THRESHOLD and importlib.import_module("main").FIRE_IS_ACTIVE:
             print(f"[Analyzer] Fire stopped! ROS < {self.ROS_STOP_THRESHOLD} for {self.ros_zero_streak} frames")
             self.has_auto_stopped = True
-
-            # Trigger auto-stop (this runs in worker thread → use thread-safe call)
             threading.Thread(target=self.auto_stop_callback, daemon=True).start()
 
 

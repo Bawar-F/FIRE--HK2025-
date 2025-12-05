@@ -162,7 +162,7 @@ class BurnChamberSystem:
         # Setup capture folder
         print("[System] Setting up capture folder...")
         self.capture_manager.setup_tmpfs()
-        self.capture_manager.cleanup_old_frames()
+        #self.capture_manager.cleanup_old_frames()
         
         # Connect UART
         print("[System] Connecting to Arduino...")
@@ -210,7 +210,7 @@ class BurnChamberSystem:
 
         
         # Cleanup old frames
-        self.capture_manager.cleanup_old_frames()
+        #self.capture_manager.cleanup_old_frames()
         
         # Start capture
         success = self.capture_manager.start_capture(duration_sec=duration_sec)
@@ -290,7 +290,7 @@ class BurnChamberSystem:
         """UART callback - reset system."""
         print("[System] Resetting system...")
         self.analyzer.reset()
-        self.capture_manager.cleanup_old_frames()
+        #self.capture_manager.cleanup_old_frames()
         self.processor.frame_counter = 0
     
     def run(self):
@@ -343,7 +343,7 @@ def standalone_capture(duration_sec=None, temp_threshold=None):
     
     # Setup
     capture_manager.setup_tmpfs()
-    capture_manager.cleanup_old_frames()
+    #capture_manager.cleanup_old_frames()
     processor.start_workers()
     
     # Start file watcher

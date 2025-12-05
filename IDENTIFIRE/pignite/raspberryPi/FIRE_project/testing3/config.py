@@ -24,7 +24,8 @@ MIN_CONTOUR_AREA_PIXELS = 20
 EDGE_DETECTION_METHOD = "temperature"
 
 # Paths
-CAPTURE_FOLDER = "/tmp/lepton_capture"
+CAPTURE_FOLDER = "/captures"
+USE_TMPFS = False  # Set True to mount tmpfs (RAM disk), False for persistent storage
 FILE_PREFIX = "sample_"
 FILE_EXTENSION = ".gray"
 PARTIAL_RESULTS_PATH = "/tmp/burn_partial_results.json"

@@ -481,7 +481,6 @@ void request_status_from_sample(int wanted_response) {
         //everything done
         //Serial.println("waste management done");
         break;
-
       //waste management but form not moving
       case 7:
         //wait
