@@ -2,7 +2,7 @@ import serial
 import time
 from enum import Enum
 import config
-import subprocess
+
 
 class SystemState(Enum):
     IDLE = "idle"
@@ -92,7 +92,7 @@ class UARTController:
             except:
                 return "START", {"duration_sec": config.DEFAULT_CAPTURE_DURATION, "temp_threshold": config.BURN_TEMP_DELTA}
 
-        elif command in ["STOP", "STATUS", "RESULTS", "RESET", "FIRESTATUS", "PING", "FORCE"]:
+        elif command in ["STOP", "STATUS", "RESULTS", "RESET", "FIRESTATUS", "PING", "]:
             return command, {}
 
         else:
@@ -104,8 +104,6 @@ class UARTController:
             if self.state != SystemState.IDLE:
                 return f"error: Cannot start, system in {self.state.value} state"
             if 'start' in callbacks:
-                subprocess.run(["sudo", "python3", "reset_flir_camera.py"])
-                time.sleep(2)
                 success = callbacks['start'](args['duration_sec'], args['temp_threshold'])
                 if success:
                     self.state = SystemState.BUSY
@@ -144,20 +142,17 @@ class UARTController:
             fire_lit = False
             if 'status' in callbacks:
                 status_data = callbacks['status']()
-                fire_lit = status_data.get('ros_instantaneous_cm2_per_sec', 0) > config.FIRE_LIT_FIRESTATUS
-            import main
-            main.FIRE_IS_ACTIVE = fire_lit
-            return "1" if fire_lit else "1"
-
+                fire_lit = status_data.get('avg_ros_cm2_per_sec', 0) > 0
+            return "1" if fire_lit else "0"
         elif command == "PING":
             return "1"
 
         elif command == "FORCE":
             import importlib
             main = importlib.import_module('main')
-            if hasattr(main, 'system'):
-                main.system.analyzer.ignition_frame = 1
-                main.system.analyzer.ignition_time = 0.0
+            if hasattr(main, "system"):
+                system.analyzer.ignition_frame = 1
+                system.analyzer.ignition_time = 0.0
             return "1"
 
         else:

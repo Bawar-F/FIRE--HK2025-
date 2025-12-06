@@ -1,0 +1,3 @@
+LEP_GetOemGpioMode gpio_mode = 5 result = 0.
+LEP_SetOemGpioMode result = 0.
+LEP_GetOemGpioMode gpio_mode = 5 result = 0.

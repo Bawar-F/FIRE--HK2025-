@@ -2,7 +2,7 @@ import serial
 import time
 from enum import Enum
 import config
-import subprocess
+
 
 class SystemState(Enum):
     IDLE = "idle"
@@ -92,7 +92,7 @@ class UARTController:
             except:
                 return "START", {"duration_sec": config.DEFAULT_CAPTURE_DURATION, "temp_threshold": config.BURN_TEMP_DELTA}
 
-        elif command in ["STOP", "STATUS", "RESULTS", "RESET", "FIRESTATUS", "PING", "FORCE"]:
+        elif command in ["STOP", "STATUS", "RESULTS", "RESET", "FIRESTATUS"]:
             return command, {}
 
         else:
@@ -104,21 +104,19 @@ class UARTController:
             if self.state != SystemState.IDLE:
                 return f"error: Cannot start, system in {self.state.value} state"
             if 'start' in callbacks:
-                subprocess.run(["sudo", "python3", "reset_flir_camera.py"])
-                time.sleep(2)
                 success = callbacks['start'](args['duration_sec'], args['temp_threshold'])
                 if success:
                     self.state = SystemState.BUSY
-                    return "1"
+                    return "started"
                 else:
                     self.state = SystemState.ERROR
-                    return "0"
+                    return "error: Failed to start capture"
 
         elif command == "STOP":
             if 'stop' in callbacks:
                 callbacks['stop']()
             self.state = SystemState.IDLE
-            return "1"
+            return "stopped"
 
         elif command == "STATUS":
             status_str = self.state.value
@@ -138,31 +136,16 @@ class UARTController:
                 callbacks['reset']()
             self.state = SystemState.IDLE
             self.last_results = None
-            return "1"
+            return "reset"
 
         elif command == "FIRESTATUS":
             fire_lit = False
             if 'status' in callbacks:
                 status_data = callbacks['status']()
-                fire_lit = status_data.get('ros_instantaneous_cm2_per_sec', 0) > config.FIRE_LIT_FIRESTATUS
-            import main
-            main.FIRE_IS_ACTIVE = fire_lit
-            return "1" if fire_lit else "1"
-
-        elif command == "PING":
-            return "1"
-
-        elif command == "FORCE":
-            import importlib
-            main = importlib.import_module('main')
-            if hasattr(main, 'system'):
-                main.system.analyzer.ignition_frame = 1
-                main.system.analyzer.ignition_time = 0.0
-            return "1"
-
+                fire_lit = status_data.get('avg_ros_cm2_per_sec', 0) > 0
+            return 1 if fire_lit else "false
         else:
             return f"error: Unknown command {command}"
-
 
     def update_state(self, new_state):
         if isinstance(new_state, str):

@@ -55,6 +55,13 @@ def bb_serial_send_wave(pi, tx_pin, text, baud=9600):
             pi.wave_delete(wid)
 
 # -----------------------------
+# Simple send function for external use
+# -----------------------------
+def send_ble(message):
+    """Send a message over BLE. Call from other modules."""
+    bb_serial_send_wave(pi, TX, str(message) + "\r\n", BAUD)
+
+# -----------------------------
 # Menu loop
 # -----------------------------
 def menu():
@@ -97,10 +104,10 @@ def menu():
 # -----------------------------
 # Run the menu
 # -----------------------------
-try:
-    menu()
-finally:
-    # Cleanup
-    pi.bb_serial_read_close(RX)
-    pi.stop()
+if __name__ == "__main__":
+    try:
+        menu()
+    finally:
+        pi.bb_serial_read_close(RX)
+        pi.stop()
 

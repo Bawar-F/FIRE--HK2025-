@@ -70,8 +70,8 @@ def menu():
                 BAUD = 19600
                 #msg = input("Enter message to send: ")
                 bb_serial_send_wave(pi, TX, str(x) + "\r\n", BAUD)
-                time.sleep(0.1)
-            print("Message sent!")
+            
+print("Message sent!")
         elif choice == "2":
             BAUD = 9600
             print("Listening for data... (Ctrl+C to stop)")

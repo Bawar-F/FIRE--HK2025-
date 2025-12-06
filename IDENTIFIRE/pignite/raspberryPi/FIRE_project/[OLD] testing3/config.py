@@ -24,7 +24,8 @@ MIN_CONTOUR_AREA_PIXELS = 20
 EDGE_DETECTION_METHOD = "temperature"
 
 # Paths
-CAPTURE_FOLDER = "home/fire/timestamped_captures"
+CAPTURE_FOLDER = "/captures"
+USE_TMPFS = False  # Set True to mount tmpfs (RAM disk), False for persistent storage
 FILE_PREFIX = "sample_"
 FILE_EXTENSION = ".gray"
 PARTIAL_RESULTS_PATH = "/tmp/burn_partial_results.json"
@@ -35,7 +36,7 @@ UART_BAUDRATE = 9600
 UART_TIMEOUT = 1.0
 
 # Analysis
-DEFAULT_CAPTURE_DURATION = 20
+DEFAULT_CAPTURE_DURATION = 3600
 DEFAULT_CAPTURE_FPS = 9
 NUM_ANALYZER_THREADS = 2
 
@@ -54,32 +55,16 @@ DEBUG_MODE = True
 SAVE_DEBUG_IMAGES = False
 DEBUG_OUTPUT_FOLDER = "/tmp/burn_debug"
 
+# Bluetooth telemetry
+BLE_ENABLED = False  # Set True to send telemetry over HM-10
+BLE_UPDATE_INTERVAL = 5  # Seconds between BLE updates
+
 # BURN ANALYZER SETTINGS FOR AUTO STOP FEATURE
-ROS_STOP_THRESHOLD = 0.5
+ROS_STOP_THRESHOLD = 0.02
 MIN_ZERO_FRAMES = 30
 
 # UART CONTROLLER FIRESTATUS COMMAND FIRE_LIT SETTING
 FIRE_LIT_FIRESTATUS = 0.005
-
-# THERMAL IMAGE PREPROCESSING STEPS
-ROTATION_ANGLE = 2.2
-
-CROP_REGION = (35, 106, 50, 120)
-
-APPLY_THRESHOLD = False
-THRESHOLD_VALUE = 10000  # lower threshold to detect hot material
-
-UPPER_THRESHOLD = False
-UPPER_THRESHOLD_VALUE = 47000  # optional upper cutoff
-
-GAUSSIAN_BLUR = False
-GAUSSIAN_SIGMA = 5  # recommended if enabling
-
-TEMPORAL_MEDIAN = True
-MEDIAN_WINDOW = 5  # number of frames in temporal median, can be <5 if fewer frames
-
-
-
 
 def print_config():
     print(f"\n{'='*60}")

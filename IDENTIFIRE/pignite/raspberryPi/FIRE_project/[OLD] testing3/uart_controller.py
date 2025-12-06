@@ -2,7 +2,7 @@ import serial
 import time
 from enum import Enum
 import config
-import subprocess
+
 
 class SystemState(Enum):
     IDLE = "idle"
@@ -104,8 +104,6 @@ class UARTController:
             if self.state != SystemState.IDLE:
                 return f"error: Cannot start, system in {self.state.value} state"
             if 'start' in callbacks:
-                subprocess.run(["sudo", "python3", "reset_flir_camera.py"])
-                time.sleep(2)
                 success = callbacks['start'](args['duration_sec'], args['temp_threshold'])
                 if success:
                     self.state = SystemState.BUSY
@@ -147,7 +145,7 @@ class UARTController:
                 fire_lit = status_data.get('ros_instantaneous_cm2_per_sec', 0) > config.FIRE_LIT_FIRESTATUS
             import main
             main.FIRE_IS_ACTIVE = fire_lit
-            return "1" if fire_lit else "1"
+            return "1" if fire_lit else "0"
 
         elif command == "PING":
             return "1"
