@@ -14,7 +14,7 @@ from watchdog.events import FileSystemEventHandler
 import config
 from uart_controller import UARTController, SystemState
 from capture_manager import CaptureManager
-from burn_analyzer import BurnAnalyzer
+from IDENTIFIRE.pignite.raspberryPi.FIRE_project.testing3.burn_analyzer import BurnAnalyzer
 
 import subprocess
 

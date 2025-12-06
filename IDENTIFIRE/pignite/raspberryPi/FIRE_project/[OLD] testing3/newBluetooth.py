@@ -22,8 +22,6 @@ pi.set_mode(RX, pigpio.INPUT)
 # Initialize RX for software serial
 pi.bb_serial_read_open(RX, BAUD)
 
-
-
 _pi = None
 _initialized = False
 

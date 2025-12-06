@@ -14,7 +14,7 @@ sys.path.insert(0, '/home/fire/Documents/FIRE_project/testing3')
 
 from uart_controller import UARTController, SystemState
 from capture_manager import CaptureManager
-from burn_analyzer import BurnAnalyzer
+from IDENTIFIRE.pignite.raspberryPi.FIRE_project.testing3.OLD_burn_analyzer import BurnAnalyzer
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from queue import Queue
