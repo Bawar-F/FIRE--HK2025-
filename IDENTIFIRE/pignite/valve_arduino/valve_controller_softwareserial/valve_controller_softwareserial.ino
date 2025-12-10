@@ -65,6 +65,7 @@ void loop() {
     int D = mySerial.parseInt();
 
     if (S == 3){
+      ack_status = '2';
       analogWrite(valve, 0);
       analogWrite(spark, 0);
       timerRunning = false;

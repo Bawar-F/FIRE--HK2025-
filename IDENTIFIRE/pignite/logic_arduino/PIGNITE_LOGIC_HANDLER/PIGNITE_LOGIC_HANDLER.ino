@@ -19,7 +19,6 @@
 SoftwareSerial valveSerial(VALVE_RX, VALVE_TX);  // RX, TX
 
 
-
 // ------------------------------------------------------------
 // Global Variables
 // ------------------------------------------------------------
@@ -33,13 +32,7 @@ int stepTime = 0;
 String burnSetting;
 int request;
 static bool sent = false;
-
-
-unsigned long prevValveT = 0;
-unsigned long maxValveT = 0;
-bool valveT = false;
-bool timerCmd = false;
-bool flagT = false;
+int cameraDelay = 0;
 
 // ------------------------------------------------------------
 // Burn sequences
@@ -60,21 +53,15 @@ struct resultPayload {
 resultPayload data;
 
 BurnStep dryBurns[] = {
-  { 10000, 255 },
-  { 1000, 204 },
-  { 1000, 255 }
+  { 5000, 200 } // 50%
 };
 
 BurnStep mediumBurns[] = {
-  { 2000, 153 },
-  { 2000, 204 },
-  { 2000, 255 }
+  { 5000, 210 }
 };
 
 BurnStep wetBurns[] = {
-  { 3000, 153 },
-  { 3000, 204 },
-  { 3000, 255 }
+  { 5000, 255 }
 };
 
 void receiveEvent(int count) {
@@ -85,33 +72,27 @@ void receiveEvent(int count) {
 }
 
 void requestEvent() {
+
   if (i2cCommand == 2) {
     Wire.write((uint8_t*)&data,sizeof(resultPayload));
     state = 1;
   }
   else{
-    Wire.write(state);
+    Wire.write(state); //If state is 5 no data, if state is 7 struct
   }
-  
 }
 
 // Start a burn cycle
 void startCycle(uint16_t timeMS, uint8_t duty) {
-  if (!burnActive){
-    String cmd = String("1\n") + String(timeMS) + "\n" + String(duty) + "\n";
-    valveSerial.println(cmd);
-    burnActive = true;
+  String cmd = String("1\n") + String(timeMS) + "\n" + String(duty) + "\n";
+  valveSerial.println(cmd);
+  burnActive = true;
 
-    maxValveT = timeMS + 1000;
-    valveT = true;
-    prevValveT = millis();
-
-    Serial.print("[BURN START] Time: ");
-    Serial.print(timeMS);
-    Serial.print(" ms, Duty: ");
-    Serial.print(duty);
-    Serial.println(" (255=max)");
-  }
+  Serial.print("[BURN START] Time: ");
+  Serial.print(timeMS);
+  Serial.print(" ms, Duty: ");
+  Serial.print(duty);
+  Serial.println(" (255=max)");
 }
 
 // ------------------------------------------------------------
@@ -129,18 +110,13 @@ void runBurnSequence(BurnStep* sequence, int steps, int& burnStep, const char* m
   }
 
   if (!burnActive) {
+    cameraDelay = sequence[burnStep].time - 5000;
+    delay(800);
+    delay(cameraDelay);
     Serial.println("[CAMERA] Requesting start...");
     Serial1.println("start");
 
-    while (Serial1.available() <= 0) {}  // wait for reply
-    bool startReply = Serial1.parseInt();
-    Serial1.read();
-
-    if (!startReply) {
-      state = -1;
-      Serial.println("[ERROR] Camera failed to start!");
-      return;
-    }
+    delay(500);
 
     Serial.print("[IGNITION ATTEMPT ");
     Serial.print(burnStep + 1);
@@ -154,38 +130,33 @@ void runBurnSequence(BurnStep* sequence, int steps, int& burnStep, const char* m
     Serial.print(sequence[burnStep].time);
     Serial.print(" ms @ duty ");
     Serial.println(sequence[burnStep].dutyCycle);
-
+    
     startCycle(sequence[burnStep].time, sequence[burnStep].dutyCycle);
+   
 
-  } else if (valveSerial.available() > 0 || timerCmd == true) {
-    ack = valveSerial.read();
-    valveT = false;
-    if (timerCmd == true){
-      ack == '2';
-      timerCmd = false;
-      
-    }
-
-
+  } else if (1) {
+    //ack = valveSerial.read();
+    delay(5000);
+    ack = '2'; 
 
     if (ack == '2') {
       Serial.println("[VALVE] Burn step completed → waiting 10 s for flame detection");
-      ack = '0';
+
       delay(10000);  // stabilization delay
+      Serial1.read();
 
       Serial.println("[CAMERA] Querying fire status after 10 s delay");
       Serial1.println("FIRESTATUS");
 
+      
       while (Serial1.available() <= 0) {}
       bool fire = Serial1.parseInt();
       Serial1.read();
 
 
-
       if (fire) {
         state = 6;
         burnActive = false;
-        stepTime = stepTime + sequence[burnStep].time;
         burnSetting = moistureLevel;
         Serial.println("SUCCESS! Sample is burning → waiting for Raspberry Pi analysis data");
         return;
@@ -212,7 +183,7 @@ void runBurnSequence(BurnStep* sequence, int steps, int& burnStep, const char* m
         if (resetOk) {
           burnAttempts++;
           burnStep++;
-          stepTime = stepTime + sequence[burnStep].time;
+          
           burnActive = false;
           Serial.print("[NEXT ATTEMPT] Total ignition attempts so far: ");
           Serial.println(burnAttempts);
@@ -285,10 +256,10 @@ void loop() {
           Serial.println("[STATE 1] Idle – waiting for I2C START command...");
           printed = true;
           burnAttempts = 0;
+
         }
-        i2cCommand = 1;
+        
         if (i2cCommand == 1) {
-          i2cCommand = 0; 
           state = 2;
           Serial.println("[I2C] START command received → beginning test");
           printed = false;
@@ -298,22 +269,28 @@ void loop() {
 
     case 2:
       {
+        i2cCommand = 0;
         static int burnStep = 0;
-        runBurnSequence(dryBurns, 3, burnStep, "DRY");
+        stepTime += dryBurns[0].time;
+        runBurnSequence(dryBurns, 1, burnStep, "DRY");
         break;
       }
 
     case 3:
       {
         static int burnStep = 0;
-        runBurnSequence(mediumBurns, 3, burnStep, "MEDIUM");
+        stepTime += mediumBurns[0].time;
+        runBurnSequence(mediumBurns, 1, burnStep, "MEDIUM");
         break;
       }
 
     case 4:
       {
         static int burnStep = 0;
-        runBurnSequence(wetBurns, 3, burnStep, "WET");
+        stepTime += wetBurns[0].time;
+        runBurnSequence(wetBurns, 1, burnStep, "WET");
+        state = 6;
+        
         break;
       }
 
@@ -321,21 +298,40 @@ void loop() {
       Serial.println("[RESULT] Sample never ignited after all sequences → test failed");
       delay(5000);
       if(i2cCommand == 1){
-        i2cCommand = 0;
+        i2cCommand= 0;
         state = 1;
       }
+    
       break;
 
     case 6:
       Serial.println("[STATE 6] Sample is burning – waiting for Raspberry Pi to send measurement data...");
       if (Serial1.available() > 0) {
         String check = Serial1.readStringUntil(',');
-        if (check == "FINAL") {
-          data.averageRos = Serial1.parseFloat();
-          data.peakRos = Serial1.parseFloat();
+        if (check == "status:complete") {
+
+          // Skip "duration_sec:" label
+          Serial1.find("duration_sec:");
+          float duration = Serial1.parseFloat(); // Duration
+
+          // Skip "final_burn_percentage:" label
+          Serial1.find("final_burn_percentage:");
           data.burnedPercentage = Serial1.parseFloat();
+
+          // Skip "avg_ros_cm2_per_sec:" label
+          Serial1.find("avg_ros_cm2_per_sec:");
+          data.averageRos = Serial1.parseFloat();
+
+          // Skip "max_ros_cm2_per_sec:" label
+          Serial1.find("max_ros_cm2_per_sec:");
+          data.peakRos = Serial1.parseFloat();
+
+          // Skip "max_temp_celsius:" label (optional)
+          Serial1.find("max_temp_celsius:");
+          float maxTemp = Serial1.parseFloat();
           data.ignitionTime = stepTime;
           burnSetting.toCharArray(data.burnSetting, sizeof(data.burnSetting));
+          Serial1.read();
 
 
         } else {
@@ -375,21 +371,20 @@ void loop() {
         Serial.println("==================================================");
         Serial.println();
 
-        
         state = 7;  
       }
-
-    
+      burnActive = false;
       break;
 
     case 7:
     {
-        
         if (!sent) {
-            Serial.println("[STATE 7] Test complete – sending summary to Pi");
+            Serial.println("[STATE 7] Test complete – sending summary to rotom");
             sent = true;
         }
         sent = false;
+        delay(1000);
+        state = 1;
         break;
     }
 
@@ -404,26 +399,10 @@ void loop() {
       break;
   }
 
-    // Valve timer
-  if (valveT) {
-    if (millis() < prevValveT) {
-      valveT = false;
-      Serial.print("Resetting Valve A");
-      timerCmd = true;
-    }
-    unsigned long elapsed = millis() - prevValveT;
-    if (elapsed >= maxValveT) {
-      valveT = false;
-      timerCmd = true;
-      Serial.print("Resetting Valve A");
 
-    }
-  }
 
   
 
   // Small delay to keep serial monitor readable
   delay(100);
 }
-
-
